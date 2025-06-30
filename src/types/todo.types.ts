@@ -4,6 +4,6 @@ export type CreateTODO = {
     title: string,
     description?: string,
     status: STATUS,
-    userId?: string
+    userId?: number
 
 }
