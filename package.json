@@ -5,7 +5,11 @@
   "main": "src/main.ts",
   "scripts": {
     "dev": " node -r ts-node/register --watch --env-file=.env src/main.ts",
-    "start": "node --env-file=./environments/.env.prod dist/index.js"
+    "start": "node --env-file=./environments/.env.prod dist/index.js",
+    "db:generate": "prisma generate ",
+    "db:push": "prisma db push ",
+    "db:pull": "prisma db pull ",
+    "db:studio": "prisma studio"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +18,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.0.7",
     "prisma": "^6.10.1",
     "ts-node": "^10.9.2",
@@ -24,6 +29,7 @@
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
-    "joi": "^17.13.3"
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2"
   }
 }

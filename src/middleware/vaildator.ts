@@ -15,5 +15,4 @@ export const validator = (schema: Joi.ObjectSchema<any>) => {
         req.body = value;
         next();
     }
-
 }
