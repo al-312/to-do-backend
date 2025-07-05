@@ -12,3 +12,15 @@ export const createTodo = async (data: CreateTODO) => {
     })
     return {data: newTodo}
 }
+
+export const deleteTodo = async (id: string) => {
+    return db.tODO.delete({where: {id: parseInt(id)}});
+}
+
+export const getAllTodos = async (userId: number) => {
+    return db.tODO.findMany({where: {userId}});
+}
+
+export const getTodoById = async (id: string, userId:number) => {
+    return db.tODO.findUnique({where: {id: parseInt(id), userId}});
+}
