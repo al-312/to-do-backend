@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../global.css">
+    <title>Todo List</title>
+</head>
+<body>
+<div class="container">
+    <h1>✨ My Todo List</h1>
+
+    <form id="todo-form" onsubmit="addTodo(event)">
+        <div class="form-group">
+            <label for="todo-title">Task Title</label>
+            <input type="text" id="todo-title" placeholder="Enter task title..." required>
+        </div>
+        <div class="form-group">
+            <label for="todo-description">Description</label>
+            <input type="text" id="todo-description" placeholder="Enter task description..." required>
+        </div>
+        <div class="form-group">
+            <label for="todo-status">Status</label>
+            <select id="todo-status" required>
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+        <button type="submit">Add Task</button>
+    </form>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-number" id="total-tasks">0</span>
+            <span class="stat-label">Total Tasks</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number" id="completed-tasks">0</span>
+            <span class="stat-label">Completed</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number" id="pending-tasks">0</span>
+            <span class="stat-label">Pending</span>
+        </div>
+    </div>
+
+    <div id="todo-container" class="loading">
+        <div>Loading your tasks...</div>
+    </div>
+</div>
+
+<script>
+    const token = sessionStorage.getItem("AUTH_TOKEN");
+    const todoContainer = document.getElementById("todo-container");
+
+    const updateStats = (todos) => {
+        const total = todos.length;
+        const completed = todos.filter(todo => todo.status === 'completed').length;
+        const pending = total - completed;
+
+        document.getElementById('total-tasks').textContent = total;
+        document.getElementById('completed-tasks').textContent = completed;
+        document.getElementById('pending-tasks').textContent = pending;
+    };
+
+    const showTODO = (data) => {
+        if (!Array.isArray(data) || data.length === 0) {
+            todoContainer.innerHTML = '<div class="empty-state">No tasks yet. Add your first task above!</div>';
+            return;
+        }
+
+        todoContainer.innerHTML = "";
+        todoContainer.classList.remove("loading")
+
+        data.forEach((item, index) => {
+            const statusClass = item.status.toLowerCase().replace(' ', '_');
+            const statusText = item.status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+            const todoCard = document.createElement('div');
+            todoCard.className = 'todo-card';
+            todoCard.style.animationDelay = `${index * 0.1}s`;
+            todoCard.innerHTML = `
+                    <div class="todo-title">${item.title}</div>
+                    <div class="todo-description">${item.description}</div>
+                    <div class="todo-footer">
+                        <div class="todo-status ${statusClass}">${statusText}</div>
+                        <button class="delete-btn" onclick="deleteTodo(${item.id})" title="Delete task">×</button>
+                    </div>
+                `;
+            todoContainer.appendChild(todoCard);
+        });
+
+        updateStats(data);
+    };
+
+    const fetchTodos = () => {
+        fetch("/api/todo", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "Error in getting To Do");
+                    });
+                }
+                return response.json();
+            })
+            .then(json => {
+                console.log(json.data);
+                showTODO(json.data);
+            })
+            .catch(err => {
+                console.error(err);
+                todoContainer.innerHTML = `<p class="error-message">${err.message}</p>`;
+            });
+    };
+
+    const addTodo = (e) => {
+        e.preventDefault()
+        const title = document.getElementById("todo-title").value;
+        const description = document.getElementById("todo-description").value;
+        const status = document.getElementById("todo-status").value;
+
+        if (!title || !description || !status) {
+            todoContainer.innerHTML = '<p class="error-message">Please fill in all fields</p>';
+            return;
+        }
+
+        fetch("/api/todo", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({title, description, status})
+        })
+            .then(response => response.json())
+            .then(() => {
+                document.getElementById("todo-title").value = "";
+                document.getElementById("todo-description").value = "";
+                fetchTodos();
+            })
+            .catch(err => {
+                console.error(err);
+                todoContainer.innerHTML = `<p class="error-message">Error adding todo</p>`;
+            });
+    };
+
+    const deleteTodo = (id) => {
+        fetch(`/api/todo/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+            .then(() => fetchTodos())
+            .catch(err => {
+                console.error(err);
+                todoContainer.innerHTML = `<p class="error-message">Error deleting todo</p>`;
+            });
+    };
+
+    fetchTodos();
+</script>
+</body>
+</html>
