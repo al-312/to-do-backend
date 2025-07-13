@@ -14,4 +14,22 @@ model User {
   name     String
   password String
   avatar   String?
+  TODO     TODO[]
+}
+
+model TODO {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      STATUS   @default(TODO)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum STATUS {
+  TODO
+  IN_PROGRESS
+  COMPLETED
 }
