@@ -6,48 +6,46 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="../global.css">
-    <title>Todo List</title>
+    <title>Enhanced Todo List</title>
 </head>
 <body>
 <div class="container">
-    <h1>✨ My Todo List</h1>
+    <div class="header">
+        <h1 class="app-title">✨ TodoMaster</h1>
+        <p class="app-subtitle">Organize your tasks with style and efficiency</p>
+    </div>
 
-    <form id="todo-form" onsubmit="addTodo(event)">
+    <form id="todo-form" action="">
         <div class="form-group">
             <label for="todo-title">Task Title</label>
-            <input type="text" id="todo-title" placeholder="Enter task title..." required>
+            <input type="text" id="todo-title" placeholder="What needs to be done?" required>
         </div>
         <div class="form-group">
             <label for="todo-description">Description</label>
-            <input type="text" id="todo-description" placeholder="Enter task description..." required>
+            <input type="text" id="todo-description" placeholder="Add some details..." required>
         </div>
-        <div class="form-group">
-            <label for="todo-status">Status</label>
-            <select id="todo-status" required>
-                <option value="todo">To Do</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-            </select>
-        </div>
-        <button type="submit">Add Task</button>
+        <button type="submit" class="add-btn">Add Task</button>
     </form>
 
-    <div class="stats-bar">
-        <div class="stat-item">
-            <span class="stat-number" id="total-tasks">0</span>
-            <span class="stat-label">Total Tasks</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-number" id="completed-tasks">0</span>
-            <span class="stat-label">Completed</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-number" id="pending-tasks">0</span>
-            <span class="stat-label">Pending</span>
+    <div class="stats-section">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-number" id="total-tasks">0</span>
+                <span class="stat-label">Total Tasks</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="completed-tasks">0</span>
+                <span class="stat-label">Completed</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="pending-tasks">0</span>
+                <span class="stat-label">Pending</span>
+            </div>
         </div>
     </div>
 
     <div id="todo-container" class="loading">
+        <div class="spinner"></div>
         <div>Loading your tasks...</div>
     </div>
 </div>
@@ -55,6 +53,12 @@
 <script>
     const token = sessionStorage.getItem("AUTH_TOKEN");
     const todoContainer = document.getElementById("todo-container");
+    const createTodoForm = document.getElementById("todo-form")
+
+    createTodoForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        addTodo();
+    })
 
     const updateStats = (todos) => {
         const total = todos.length;
@@ -69,11 +73,12 @@
     const showTODO = (data) => {
         if (!Array.isArray(data) || data.length === 0) {
             todoContainer.innerHTML = '<div class="empty-state">No tasks yet. Add your first task above!</div>';
+            updateStats([]);
             return;
         }
 
         todoContainer.innerHTML = "";
-        todoContainer.classList.remove("loading")
+        todoContainer.classList.remove("loading");
 
         data.forEach((item, index) => {
             const statusClass = item.status.toLowerCase().replace(' ', '_');
@@ -85,9 +90,19 @@
             todoCard.innerHTML = `
                     <div class="todo-title">${item.title}</div>
                     <div class="todo-description">${item.description}</div>
+                    <div class="todo-actions">
+                        <div class="form-group">
+                            <label for="todo-status-${item.id}">Status</label>
+                            <select id="todo-status-${item.id}" onchange="updateTodoStatus(${item.id}, this.value)" aria-label="Update task status">
+                                <option value="TODO" ${item.status.toLowerCase() === 'todo' ? 'selected' : ''}>To Do</option>
+                                <option value="IN_PROGRESS" ${item.status.toLowerCase() === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="COMPLETED" ${item.status.toLowerCase() === 'completed' ? 'selected' : ''}>Completed</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="todo-footer">
                         <div class="todo-status ${statusClass}">${statusText}</div>
-                        <button class="delete-btn" onclick="deleteTodo(${item.id})" title="Delete task">×</button>
+                        <button class="delete-btn" onclick="deleteTodo(${item.id})" title="Delete task" aria-label="Delete task"></button>
                     </div>
                 `;
             todoContainer.appendChild(todoCard);
@@ -96,7 +111,9 @@
         updateStats(data);
     };
 
+
     const fetchTodos = () => {
+        todoContainer.classList.add("loading");
         fetch("/api/todo", {
             headers: {
                 "Authorization": `Bearer ${token}`
@@ -111,22 +128,21 @@
                 return response.json();
             })
             .then(json => {
-                console.log(json.data);
                 showTODO(json.data);
             })
             .catch(err => {
                 console.error(err);
+                todoContainer.classList.remove("loading");
                 todoContainer.innerHTML = `<p class="error-message">${err.message}</p>`;
             });
     };
 
-    const addTodo = (e) => {
-        e.preventDefault()
+    const addTodo = () => {
+        console.log("hi")
         const title = document.getElementById("todo-title").value;
         const description = document.getElementById("todo-description").value;
-        const status = document.getElementById("todo-status").value;
 
-        if (!title || !description || !status) {
+        if (!title || !description) {
             todoContainer.innerHTML = '<p class="error-message">Please fill in all fields</p>';
             return;
         }
@@ -137,9 +153,16 @@
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({title, description, status})
+            body: JSON.stringify({title, description, status: "todo"})
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "Error adding todo");
+                    });
+                }
+                return response.json();
+            })
             .then(() => {
                 document.getElementById("todo-title").value = "";
                 document.getElementById("todo-description").value = "";
@@ -147,7 +170,31 @@
             })
             .catch(err => {
                 console.error(err);
-                todoContainer.innerHTML = `<p class="error-message">Error adding todo</p>`;
+                todoContainer.innerHTML = `<p class="error-message">${err.message}</p>`;
+            });
+    };
+
+    const updateTodoStatus = (id, status) => {
+        fetch(`/api/todo/${id}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({status})
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "Error updating status");
+                    });
+                }
+                return response.json();
+            })
+            .then(() => fetchTodos())
+            .catch(err => {
+                console.error(err);
+                todoContainer.innerHTML = `<p class="error-message">${err.message}</p>`;
             });
     };
 
@@ -158,10 +205,18 @@
                 "Authorization": `Bearer ${token}`
             }
         })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "Error deleting todo");
+                    });
+                }
+                return response.json();
+            })
             .then(() => fetchTodos())
             .catch(err => {
                 console.error(err);
-                todoContainer.innerHTML = `<p class="error-message">Error deleting todo</p>`;
+                todoContainer.innerHTML = `<p class="error-message">${err.message}</p>`;
             });
     };
 
