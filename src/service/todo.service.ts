@@ -1,4 +1,4 @@
-import {CreateTODO} from "../types/todo.types";
+import {CreateTODO, UpdateTODO} from "../types/todo.types";
 import {db} from "../config/database";
 
 export const createTodo = async (data: CreateTODO) => {
@@ -23,4 +23,12 @@ export const getAllTodos = async (userId: number) => {
 
 export const getTodoById = async (id: string, userId:number) => {
     return db.tODO.findUnique({where: {id: parseInt(id), userId}});
+}
+
+export const updateTodo = async (id: string, updateData: UpdateTODO) => {
+    const toDo = db.tODO.findUnique({where: {id: parseInt(id)}});
+    if(!toDo){
+        throw "invalid ToDo data"
+    }
+    return db.tODO.update({where: {id: parseInt(id)}, data: updateData})
 }
