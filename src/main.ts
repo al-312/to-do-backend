@@ -5,12 +5,13 @@ import {authMiddleware} from "./middleware/auth.middleware";
 import todoController from "./controller/todo.controller";
 import {IRequest, IResponse} from "./type";
 import {sendSuccessResponse} from "./utils/baseResponse";
-
+import path from 'path';
 
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.json());
+app.set('views', path.join(__dirname,".." ,'views'));
 app.set('view engine', 'ejs');
 app.use(express.static("views"))
 
@@ -20,12 +21,11 @@ app.use("/api/auth", authController)
 app.use("/api/todo", authMiddleware, todoController)
 
 app.get("/login", (req: IRequest, res: IResponse) => {
-    res.render('../views/login/index');
-
+    res.render('login/index');
 })
-app.get("/todo", (req: IRequest, res: IResponse) => {
-    res.render('../views/todo/index',);
 
+app.get("/todo", (req: IRequest, res: IResponse) => {
+    res.render('todo/index',);
 })
 
 app.get("/", (req: IRequest, res: IResponse) => {
