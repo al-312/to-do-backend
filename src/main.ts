@@ -20,11 +20,11 @@ app.use("/api/auth", authController)
 app.use("/api/todo", authMiddleware, todoController)
 
 app.get("/login", (req: IRequest, res: IResponse) => {
-    res.render('login/index');
+    res.render('../views/login/index');
 
 })
 app.get("/todo", (req: IRequest, res: IResponse) => {
-    res.render('todo/index',);
+    res.render('../views/todo/index',);
 
 })
 
