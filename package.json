@@ -4,11 +4,12 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "dev": " node -r ts-node/register --watch --env-file=.env src/main.ts",
-    "start": "node --env-file=./environments/.env.prod dist/index.js",
-    "postinstall": "prisma generate ",
-    "db:push": "prisma db push ",
-    "db:pull": "prisma db pull ",
+    "dev": "node -r ts-node/register --watch --env-file=.env src/main.ts",
+    "build": "tsc",
+    "start": "node --env-file=.env dist/main.js",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull",
     "db:studio": "prisma studio"
   },
   "keywords": [],
