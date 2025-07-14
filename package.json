@@ -6,7 +6,7 @@
   "scripts": {
     "dev": " node -r ts-node/register --watch --env-file=.env src/main.ts",
     "start": "node --env-file=./environments/.env.prod dist/index.js",
-    "db:generate": "prisma generate ",
+    "postinstall": "prisma generate ",
     "db:push": "prisma db push ",
     "db:pull": "prisma db pull ",
     "db:studio": "prisma studio"
