@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import {authMiddleware} from "./middleware/auth.middleware";
 import todoController from "./controller/todo.controller";
 import {IRequest, IResponse} from "./type";
+import {sendSuccessResponse} from "./utils/baseResponse";
 
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.static("views"))
 
 
 app.use("/api/auth", authController)
+app.use("/api/auth", authController)
 app.use("/api/todo", authMiddleware, todoController)
 
 app.get("/login", (req: IRequest, res: IResponse) => {
@@ -23,6 +25,11 @@ app.get("/login", (req: IRequest, res: IResponse) => {
 })
 app.get("/todo", (req: IRequest, res: IResponse) => {
     res.render('todo/index',);
+
+})
+
+app.get("/", (req: IRequest, res: IResponse) => {
+    sendSuccessResponse({statusCode: 200, response: res, data: "Hello World", message: "Hello World"})
 
 })
 
